@@ -1,0 +1,43 @@
+name: Daily sentiment collection
+
+on:
+  schedule:
+    - cron: "0 21 * * *"   # 21:00 UTC daily = after US market close (5am MYT)
+  workflow_dispatch:        # manual "Run workflow" button
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install CPU-only torch + deps
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Run collector
+        env:
+          TICKER: AAPL
+        run: python collector.py
+
+      - name: Commit updated corpus
+        run: |
+          git config user.name "sentiment-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No changes today"
+          else
+            git commit -m "daily sentiment update $(date -u +%F)"
+            git push
+          fi
