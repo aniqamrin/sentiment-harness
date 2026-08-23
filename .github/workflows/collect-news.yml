@@ -41,3 +41,4 @@ jobs:
             git commit -m "daily sentiment update $(date -u +%F)"
             git push
           fi
+
