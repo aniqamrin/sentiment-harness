@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name "sentiment-bot"
           git config user.email "actions@github.com"
-          git add data/
+          git add -f data/
           if git diff --cached --quiet; then
             echo "No changes today"
           else
